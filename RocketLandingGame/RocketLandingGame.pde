@@ -1,8 +1,8 @@
 float gravity, deltaTime, oldMillis;
 PShape terrain;
+LandingPad landingPad;
 
 Rocket rocket;
-TerrainPoint[] terrainPoints = new TerrainPoint[800];
 
 void setup()
 {
@@ -11,6 +11,7 @@ void setup()
   
   gravity = 0.15;
   rocket = new Rocket();
+  landingPad = new LandingPad(new PVector(width/2, 400));
   GenerateTerrain();
   noStroke();
 }
@@ -22,49 +23,37 @@ void draw()
   rocket.Draw();
   rocket.Move();
   rocket.DrawFuel();
-  rocket.CheckCollision();
+  //rocket.CheckCollision();
 }
 
 void GenerateTerrain()
 {
+  int landingPadStart = (int)random(1, 20);
+  
   terrain = createShape();
   terrain.beginShape();
   terrain.noStroke();
   terrain.fill(16, 36, 25);
   terrain.vertex(0, 500);
+  
   for(int i = 0; i <= 20; i++)
   {
+    if (i == landingPadStart + 1)
+    {
+      landingPad = new LandingPad(new PVector(i*40, (map(noise(i-1), 0, 1, 350, 550))));
+      terrain.vertex(i*40, map(noise(i-1), 0, 1, 350, 550));
+      break;
+    }
     terrain.vertex(i*40, map(noise(i), 0, 1, 350, 550));
   }
   terrain.vertex(800, 500);
   terrain.endShape(CLOSE);
-  /*
-  int landingPadStart = (int)random(1, 750);
-  float inc = TWO_PI/300;
-  float a = 0;
-  
-  for(int i = 0; i < terrainPoints.length; i++)
-  {
-    int yPos = 450 + (int)(sin(a)*50);
-    boolean bol = false;
-    if (i >= landingPadStart && i <= landingPadStart + 40)
-    {
-      bol = true;
-    }
-    //terrainPoints[i] = new TerrainPoint(new PVector(i, yPos), bol);
-    terrainPoints[i] = new TerrainPoint(new PVector(i, 100*(noise(i))), bol);
-    a+=inc;//200000;
-  }*/
 }
 
 void DrawTerrain()
 {
   shape(terrain, 0, 0);
-  /*
-  for(int i = 0; i < terrainPoints.length; i++)
-  {
-    terrainPoints[i].Draw();
-  } */
+  landingPad.Draw();
 }
 
 float GetVelocityComponent(float rotation, boolean up)

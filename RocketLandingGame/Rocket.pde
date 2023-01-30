@@ -2,31 +2,79 @@ public class Rocket
 {
   float fuel, acceleration, upAcceleration, sideAcceleration, rotation, rotationSpeed;
   PVector shipPos;
-  boolean throttleUp, turnLeft, turnRight, startFreeze; 
+  boolean throttleUp, turnLeft, turnRight, startFreeze;
+  ArrayList<Smoke> smokeTrail = new ArrayList<Smoke>();
+  PShape rocket, flame;
   
   public Rocket()
   {
     shipPos = new PVector(width/2, height/2);
-    rotationSpeed = 1.5;
+    rotationSpeed = 0.1;
     fuel = 100;
-    //startFreeze = true;
+    startFreeze = true;
+    
+    flame = createShape(GROUP);
+    
+    GenerateRocketShape();
+    GenerateFlameShapes();
+  }
+  
+  void GenerateRocketShape()
+  {
+    rocket = createShape();
+    rocket.beginShape();
+    rocket.noStroke();
+    rocket.fill(0, 191, 44);
+    rocket.vertex(shipPos.x, shipPos.y);
+    rocket.vertex(shipPos.x + 10, shipPos.y + 40);
+    rocket.vertex(shipPos.x - 10, shipPos.y + 40);
+    rocket.endShape(CLOSE);
+  }
+  
+  void GenerateFlameShapes()
+  {
+    PShape outerFlame = createShape(TRIANGLE, 8, 15, -8, 15, 0, 30);
+    //outerflame.fill(255, 0, 0);
+    PShape innerFlame = createShape(TRIANGLE, 6, 15, -6, 15, 0, 20);
+    //innerflame.fill(255, 165, 0);
+    flame.addChild(outerFlame);
+    flame.addChild(innerFlame);
   }
   
   void Draw()
   {
+    //Smoke
+    ArrayList<Integer> deadSmoke = new ArrayList<Integer>();
+    for (int i = 0; i < smokeTrail.size(); i++)
+    {
+      smokeTrail.get(i).Draw();
+      smokeTrail.get(i).Decay();
+      if (smokeTrail.get(i).life < 0)
+      {
+        deadSmoke.add(i);
+      }
+    }
+    
+    for (int i = 0; i < deadSmoke.size(); i++)
+    {
+      smokeTrail.remove(i);
+    }
+    
+    //Rocket
     pushMatrix();
     translate(shipPos.x, shipPos.y);
     rotate(radians(rotation));
-    rectMode(CENTER);
-    fill(255);
-    rect(0, 0, 20, 30);
+    shape(rocket, -400, -300);
   
     if (throttleUp && fuel > 0)
     {
+      shape(flame, 0, 0);
+      /*
       fill(255, 0, 0);
       triangle(8, 15, -8, 15, 0, 30);
       fill(255, 165, 0);
       triangle(6, 15, -6, 15, 0, 20);
+      */
     }
     popMatrix();
   }
@@ -48,6 +96,7 @@ public class Rocket
   
     if (throttleUp && fuel >= 0)
     {
+      smokeTrail.add(new Smoke(255, shipPos));
       acceleration += 0.1;
       fuel -= 0.1;
     } else {
@@ -67,12 +116,12 @@ public class Rocket
 
     if (turnLeft) 
     {
-      rotation +=rotationSpeed * -1;
+      rotation += rotationSpeed * -1 * deltaTime;
     }
   
     if (turnRight)
     {
-      rotation += rotationSpeed * 1;
+      rotation += rotationSpeed * 1 * deltaTime;
     }
   
     //lock rotation between 0-360
@@ -86,6 +135,7 @@ public class Rocket
   void CheckCollision()
   {
     //IF PSHAPE CONTAINS!!!!!!!!!!!!!!!!!!!
+    /*
     try
     {
       for (int i = (int)shipPos.x - 10; i < (int)shipPos.x + 10; i++)
@@ -103,7 +153,7 @@ public class Rocket
     catch (Exception e)
     {
       
-    }
+    }*/
   }
   
   void ResetShip()
@@ -129,7 +179,7 @@ public class Rocket
   {
     deltaTime = millis() - oldMillis;
     oldMillis = millis();
-    println("fps: " + frameRate + ", delta: " + deltaTime);
+    //println("fps: " + frameRate + ", delta: " + deltaTime);
   }
   
   void PrintDebug()
