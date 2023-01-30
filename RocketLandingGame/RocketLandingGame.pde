@@ -23,7 +23,7 @@ void draw()
   rocket.Draw();
   rocket.Move();
   rocket.DrawFuel();
-  //rocket.CheckCollision();
+  rocket.CheckCollision();
 }
 
 void GenerateTerrain()

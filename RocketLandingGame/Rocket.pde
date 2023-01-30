@@ -134,6 +134,17 @@ public class Rocket
   
   void CheckCollision()
   {
+    //for (int i = 20; i >= 0; i -= 2)
+    //{
+      //for (int j = 0; j <= 30; j++)
+      //{
+        if (terrain.contains(shipPos.x, shipPos.y))
+        {
+          ResetShip();
+        }
+      //}
+    //}
+    
     //IF PSHAPE CONTAINS!!!!!!!!!!!!!!!!!!!
     /*
     try
