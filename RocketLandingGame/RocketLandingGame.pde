@@ -30,12 +30,11 @@ void GenerateTerrain()
   terrain = createShape();
   terrain.beginShape();
   terrain.noStroke();
-  //terrain.fill(16, 36, 25);
-  terrain.fill(255, 0, 0);
+  terrain.fill(16, 36, 25);
   terrain.vertex(0, 500);
-  for(int i = 0; i <= 80; i++)
+  for(int i = 0; i <= 20; i++)
   {
-    terrain.vertex(i*10, map(noise(i), 0, 1, 400, 500));
+    terrain.vertex(i*40, map(noise(i), 0, 1, 350, 550));
   }
   terrain.vertex(800, 500);
   terrain.endShape(CLOSE);
