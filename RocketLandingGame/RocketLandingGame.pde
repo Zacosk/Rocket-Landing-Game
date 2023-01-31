@@ -1,4 +1,5 @@
 float gravity, deltaTime, oldMillis;
+int terrainMaxHeight, terrainMinHeight;
 PShape terrain;
 LandingPad landingPad;
 
@@ -8,6 +9,9 @@ void setup()
 {
   size(800, 500);
   smooth(8);
+  
+  terrainMaxHeight = 250;
+  terrainMinHeight = 500;
   
   gravity = 0.15;
   rocket = new Rocket();
@@ -24,10 +28,13 @@ void draw()
   rocket.Move();
   rocket.DrawFuel();
   rocket.CheckCollision();
+  CheckRocketOffscreen();
 }
 
 void GenerateTerrain()
 {
+  
+  noiseSeed((int)random(0, 99));
   int landingPadStart = (int)random(1, 20);
   
   terrain = createShape();
@@ -36,15 +43,21 @@ void GenerateTerrain()
   terrain.fill(16, 36, 25);
   terrain.vertex(0, 500);
   
-  for(int i = 0; i <= 20; i++)
+  PVector lastTerrainPos = new PVector(0, 0);
+  
+  for(int i = 0; i < 20; i++)
   {
-    if (i == landingPadStart + 1)
+    if (i == landingPadStart)
     {
-      landingPad = new LandingPad(new PVector(i*40, (map(noise(i-1), 0, 1, 350, 550))));
-      terrain.vertex(i*40, map(noise(i-1), 0, 1, 350, 550));
+      landingPad = new LandingPad(new PVector(i*40, (map(noise(i), 0, 1, terrainMaxHeight, terrainMinHeight))));
+      terrain.vertex(i*40, map(noise(i), 0, 1, terrainMaxHeight, terrainMinHeight));
+      terrain.vertex(i*40, map(noise(i), 0, 1, terrainMaxHeight, terrainMinHeight) + 20);
+      
+      terrain.vertex((i+1)*40, map(noise(i), 0, 1, terrainMaxHeight, terrainMinHeight) + 20);
+      terrain.vertex((i+1)*40, map(noise(i), 0, 1, terrainMaxHeight, terrainMinHeight));
       break;
     }
-    terrain.vertex(i*40, map(noise(i), 0, 1, 350, 550));
+    terrain.vertex(i*40, map(noise(i), 0, 1, terrainMaxHeight, terrainMinHeight));
   }
   terrain.vertex(800, 500);
   terrain.endShape(CLOSE);
@@ -100,4 +113,43 @@ float GetVelocityComponent(float rotation, boolean up)
     }
   }
   return 1;
+}
+
+void CheckRocketOffscreen()
+{
+  if (rocket.shipPos.x < 0 || rocket.shipPos.x > 800 || rocket.shipPos.y < 0)
+  {
+    PVector indicatorPos = new PVector(rocket.shipPos.x, rocket.shipPos.y);
+    PVector textPos = new PVector(indicatorPos.x, indicatorPos.y+5);
+    if (rocket.shipPos.x < 0)
+    {
+      textAlign(LEFT);
+      indicatorPos.x = 10;
+      textPos.x = 20;
+    } else if (rocket.shipPos.x > 800)
+    {
+      textAlign(RIGHT);
+      textPos.x = 780;
+      indicatorPos.x = 790;
+    }
+    if (rocket.shipPos.y < 0)
+    {
+      textAlign(CENTER);
+      textPos.y = 35;
+      indicatorPos.y = 10;
+    }
+    
+    fill(255, 0, 0);
+    textSize(20);
+    circle(indicatorPos.x, indicatorPos.y, 10);
+    text(String.valueOf((int)Math.sqrt(Math.pow(indicatorPos.x - rocket.shipPos.x, 2) + Math.pow(indicatorPos.y - rocket.shipPos.y, 2))), textPos.x, textPos.y);
+  }
+}
+
+void ResetGame()
+{
+  rocket.ResetShip();
+  rocket.fuel = 100;
+  rocket.startFreeze = true;
+  GenerateTerrain();
 }

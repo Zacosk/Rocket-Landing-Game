@@ -25,18 +25,20 @@ public class Rocket
     rocket.beginShape();
     rocket.noStroke();
     rocket.fill(0, 191, 44);
-    rocket.vertex(shipPos.x, shipPos.y);
-    rocket.vertex(shipPos.x + 10, shipPos.y + 40);
-    rocket.vertex(shipPos.x - 10, shipPos.y + 40);
+    rocket.vertex(0, 0);
+    rocket.vertex(10, 50);
+    rocket.vertex(-10, 50);
     rocket.endShape(CLOSE);
   }
   
   void GenerateFlameShapes()
   {
     PShape outerFlame = createShape(TRIANGLE, 8, 15, -8, 15, 0, 30);
-    //outerflame.fill(255, 0, 0);
+    outerFlame.setFill(color(255, 0, 0));
+    outerFlame.setStroke(false);
     PShape innerFlame = createShape(TRIANGLE, 6, 15, -6, 15, 0, 20);
-    //innerflame.fill(255, 165, 0);
+    innerFlame.setFill(color(255, 165, 0));
+    innerFlame.setStroke(false);
     flame.addChild(outerFlame);
     flame.addChild(innerFlame);
   }
@@ -64,17 +66,13 @@ public class Rocket
     pushMatrix();
     translate(shipPos.x, shipPos.y);
     rotate(radians(rotation));
-    shape(rocket, -400, -300);
+    shape(rocket, 0, -45);
   
     if (throttleUp && fuel > 0)
     {
-      shape(flame, 0, 0);
-      /*
-      fill(255, 0, 0);
-      triangle(8, 15, -8, 15, 0, 30);
-      fill(255, 165, 0);
-      triangle(6, 15, -6, 15, 0, 20);
-      */
+      scale(1, random(0, 2));
+      shape(flame, 0, -10);
+      scale(1);
     }
     popMatrix();
   }
@@ -96,7 +94,7 @@ public class Rocket
   
     if (throttleUp && fuel >= 0)
     {
-      smokeTrail.add(new Smoke(255, shipPos));
+      smokeTrail.add(new Smoke(255, new PVector(shipPos.x, shipPos.y+20)));
       acceleration += 0.1;
       fuel -= 0.1;
     } else {
@@ -134,37 +132,26 @@ public class Rocket
   
   void CheckCollision()
   {
-    //for (int i = 20; i >= 0; i -= 2)
-    //{
-      //for (int j = 0; j <= 30; j++)
-      //{
-        if (terrain.contains(shipPos.x, shipPos.y))
-        {
-          ResetShip();
-        }
-      //}
-    //}
-    
-    //IF PSHAPE CONTAINS!!!!!!!!!!!!!!!!!!!
-    /*
-    try
+    /*for (int y = 50; y > 0 ; y--)
     {
-      for (int i = (int)shipPos.x - 10; i < (int)shipPos.x + 10; i++)
-      {
-        i = constrain(i, 1, width);
-      
-        if (terrainPoints[i].CheckCrash((int)shipPos.y) == 1)
+      int xLength = 10;
+      for (int x = (-1 * xLength); y >= xLength; y++)
+      { 
+        if (terrain.contains(shipPos.x + x, shipPos.y + y))
         {
           ResetShip();
-        } else if (terrainPoints[i].CheckCrash((int)shipPos.y) == 2){
-          FreezeShip();
         }
       }
-    }
-    catch (Exception e)
-    {
-      
+      xLength -= 2;
     }*/
+    
+    if (terrain.contains(shipPos.x, shipPos.y))
+    {
+      ResetShip();
+    } else if (landingPad.landingPad.contains(shipPos.x, shipPos.y))
+    {
+      FreezeShip();
+    }
   }
   
   void ResetShip()
@@ -172,8 +159,10 @@ public class Rocket
     shipPos.x = width/2;
     shipPos.y = height/2;
     acceleration = 0;
+    rotation = 0;
     upAcceleration = 0;
     sideAcceleration = 0;
+    gravity = 0.15;
   }
   
   void FreezeShip()
@@ -209,7 +198,7 @@ void keyPressed()
 
   if (key == 'r')
   {
-    rocket.ResetShip();
+    ResetGame();
   }
   if (key == CODED) 
   {
@@ -226,7 +215,7 @@ void keyPressed()
     }
   }
   
-  if (rocket.startFreeze)
+  if (rocket.startFreeze && key != 'r')
   {
     rocket.startFreeze = false;
   }

@@ -1,20 +1,20 @@
 public class LandingPad
 {
-  PVector endPos;
+  PVector startPos;
   PShape landingPad;
 
-  public LandingPad(PVector endPos)
+  public LandingPad(PVector startPos)
   {
-    this.endPos = endPos;
+    this.startPos = startPos;
     
     landingPad = createShape();
     landingPad.beginShape();
     landingPad.noStroke();
     landingPad.fill(180);
-    landingPad.vertex(endPos.x-40, endPos.y);
-    landingPad.vertex(endPos.x, endPos.y);
-    landingPad.vertex(endPos.x, endPos.y+20);
-    landingPad.vertex(endPos.x-40, endPos.y+20);
+    landingPad.vertex(startPos.x, startPos.y);
+    landingPad.vertex(startPos.x+40, startPos.y);
+    landingPad.vertex(startPos.x+40, startPos.y+20);
+    landingPad.vertex(startPos.x, startPos.y+20);
     landingPad.endShape(CLOSE);
   }
   
