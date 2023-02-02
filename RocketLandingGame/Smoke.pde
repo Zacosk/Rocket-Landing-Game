@@ -7,9 +7,9 @@ public class Smoke
   public Smoke(float life, PVector pos)
   {
     this.life = life;
-    this.pos = new PVector(pos.x + random(-10, 10), pos.y + random(-10, 10));
+    this.pos = new PVector(pos.x + random(-6, 6), pos.y + random(-6, 6));
     this.colour = color(random(70, 120));
-    this.size = random(10, 25);
+    this.size = random(5, 18);
   }
   
   void Draw()

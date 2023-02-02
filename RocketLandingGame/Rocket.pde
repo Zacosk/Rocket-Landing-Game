@@ -6,25 +6,26 @@ public class Rocket
   ArrayList<Smoke> smokeTrail = new ArrayList<Smoke>();
   PShape rocket, flame;
   
-  public Rocket()
+  public Rocket(color col)
   {
     shipPos = new PVector(width/2, height/2);
+  
     rotationSpeed = 0.1;
     fuel = 100;
     startFreeze = true;
     
     flame = createShape(GROUP);
     
-    GenerateRocketShape();
+    GenerateRocketShape(col);
     GenerateFlameShapes();
   }
   
-  void GenerateRocketShape()
+  void GenerateRocketShape(color col)
   {
     rocket = createShape();
     rocket.beginShape();
     rocket.noStroke();
-    rocket.fill(0, 191, 44);
+    rocket.fill(col);
     rocket.vertex(0, 0);
     rocket.vertex(10, 50);
     rocket.vertex(-10, 50);
@@ -102,9 +103,11 @@ public class Rocket
     }
   
     acceleration = constrain(acceleration, 0, 0.3);
+    
+    float upVelocityComponent = GetVelocityComponent(rotation);
   
-    upAcceleration = acceleration * GetVelocityComponent(rotation, true);
-    sideAcceleration += (acceleration * 0.2) * GetVelocityComponent(rotation, false);
+    upAcceleration = acceleration * upVelocityComponent * GetVelocityDirection(rotation, true);
+    sideAcceleration += (acceleration * 0.2) * (1-upVelocityComponent) * GetVelocityDirection(rotation, false);
   
     sideAcceleration = constrain(sideAcceleration, -0.3, 0.3);
     
@@ -182,10 +185,53 @@ public class Rocket
     //println("fps: " + frameRate + ", delta: " + deltaTime);
   }
   
+  int GetVelocityDirection(float rotation, boolean up)
+  {
+    if (up)
+    {
+      if (rotation >= 270 && rotation <= 90)
+      {
+        return -1;
+      } else {
+        return 1;
+      }
+    } else {
+      if (rotation >= 0 && rotation <= 180)
+      {
+        return 1;
+      } else {
+        return -1;
+      }
+    }
+  }
+  
+  float GetVelocityComponent(float rotation)
+  {
+    if (rotation <= 90 || rotation >= 270)
+    {
+      if (rotation <= 90)
+      {
+        return map(rotation, 0, 90, 1, 0);
+      } else if (rotation >= 270)
+      {
+        return map(rotation, 270, 360, 0, 1);
+      }
+    } else {
+      if (rotation >= 90 && rotation <= 180)
+      {
+        return map(rotation, 90, 180, 0, -1);
+      } else if (rotation >= 180 && rotation <= 270)
+      {
+        return map(rotation, 180, 270, -1, 0);
+      }
+    }
+    return 1;
+  }
+  
   void PrintDebug()
   {
     println("Ship Accl: " + acceleration + ",rot: " + rotation + ",Up Accl: " + upAcceleration + ", side Accl: " + sideAcceleration);
-    println("accl:" + acceleration + " * v comp:" + GetVelocityComponent(rotation, false) + " = " + sideAcceleration);  
+    println("accl:" + acceleration + " * v comp:" + GetVelocityComponent(rotation) + " = " + sideAcceleration);  
   }
 }
   

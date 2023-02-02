@@ -1,8 +1,10 @@
 float gravity, deltaTime, oldMillis;
 int terrainMaxHeight, terrainMinHeight;
 PShape terrain;
-LandingPad landingPad;
+PVector indicatorPos, textIndicatorPos;
+color backgroundCol, terrainCol, rocketCol;
 
+LandingPad landingPad;
 Rocket rocket;
 
 void setup()
@@ -14,7 +16,9 @@ void setup()
   terrainMinHeight = 500;
   
   gravity = 0.15;
-  rocket = new Rocket();
+  
+  GenerateColours();
+  rocket = new Rocket(rocketCol);
   landingPad = new LandingPad(new PVector(width/2, 400));
   GenerateTerrain();
   noStroke();
@@ -22,7 +26,7 @@ void setup()
 
 void draw()
 {
-  background(59, 97, 99);
+  background(backgroundCol);
   DrawTerrain();
   rocket.Draw();
   rocket.Move();
@@ -31,16 +35,29 @@ void draw()
   CheckRocketOffscreen();
 }
 
+void GenerateColours()
+{
+  int num = (int)random(0, 5);
+  switch (num)
+  {
+    case 0: backgroundCol = color(75,134,180); rocketCol = color(173,203,227); terrainCol = color(42,77,105); break;
+    case 1: backgroundCol = color(224,172,105); rocketCol = color(198,134,66); terrainCol = color(141,85,36); break;
+    case 2: backgroundCol = color(208,18,18); rocketCol = color(151,2,3); terrainCol = color(81,6,6); break;
+    case 3: backgroundCol = color(163,146,229); rocketCol = color(103,78,167); terrainCol = color(53,28,117); break;
+    case 4: backgroundCol = color(138,234,0); rocketCol = color(0,186,24); terrainCol = color(0,59,8); break;
+    //case 4: backgroundCol = color(); rocketCol = color(); terrainCol = color(); break;
+  }
+}
+
 void GenerateTerrain()
 {
-  
   noiseSeed((int)random(0, 99));
   int landingPadStart = (int)random(1, 20);
   
   terrain = createShape();
   terrain.beginShape();
   terrain.noStroke();
-  terrain.fill(16, 36, 25);
+  terrain.fill(terrainCol);
   terrain.vertex(0, 500);
   
   PVector lastTerrainPos = new PVector(0, 0);
@@ -69,87 +86,44 @@ void DrawTerrain()
   landingPad.Draw();
 }
 
-float GetVelocityComponent(float rotation, boolean up)
-{
-  if (up) 
-  {
-    if (rotation <= 90 || rotation >= 270)
-    {
-      if (rotation <= 90)
-      {
-        return map(rotation, 0, 90, 1, 0);
-      } else if (rotation >= 270)
-      {
-        return map(rotation, 270, 360, 0, 1);
-      }
-    } else {
-      if (rotation >= 90 && rotation <= 180)
-      {
-        return map(rotation, 90, 180, 0, -1);
-      } else if (rotation >= 180 && rotation <= 270)
-      {
-        return map(rotation, 180, 270, -1, 0);
-      }
-    }
-    //side movement calculation
-  } else {
-    if (rotation >= 0 && rotation <= 180)
-    {
-      if (rotation >= 0 && rotation <= 90)
-      {
-        return map(rotation, 0, 90, 0, 1);
-      } else if (rotation >= 90 && rotation <= 180)
-      {
-        return map(rotation, 90, 180, 1, 0);
-      }
-    } else {
-      if (rotation >= 180 && rotation <= 270)
-      {
-        return map(rotation, 180, 270, 0, -1);
-      } else if (rotation >= 270 && rotation <= 360)
-      {
-        return map(rotation, 270, 360, -1, 0);
-      }
-    }
-  }
-  return 1;
-}
-
 void CheckRocketOffscreen()
 {
   if (rocket.shipPos.x < 0 || rocket.shipPos.x > 800 || rocket.shipPos.y < 0)
   {
-    PVector indicatorPos = new PVector(rocket.shipPos.x, rocket.shipPos.y);
-    PVector textPos = new PVector(indicatorPos.x, indicatorPos.y+5);
+    indicatorPos = new PVector(rocket.shipPos.x, rocket.shipPos.y);
+    textIndicatorPos = new PVector(indicatorPos.x, indicatorPos.y+5);
     if (rocket.shipPos.x < 0)
     {
       textAlign(LEFT);
       indicatorPos.x = 10;
-      textPos.x = 20;
+      textIndicatorPos.x = 20;
     } else if (rocket.shipPos.x > 800)
     {
       textAlign(RIGHT);
-      textPos.x = 780;
+      textIndicatorPos.x = 780;
       indicatorPos.x = 790;
     }
     if (rocket.shipPos.y < 0)
     {
       textAlign(CENTER);
-      textPos.y = 35;
+      textIndicatorPos.y = 35;
       indicatorPos.y = 10;
     }
     
-    fill(255, 0, 0);
+    fill(255);
     textSize(20);
     circle(indicatorPos.x, indicatorPos.y, 10);
-    text(String.valueOf((int)Math.sqrt(Math.pow(indicatorPos.x - rocket.shipPos.x, 2) + Math.pow(indicatorPos.y - rocket.shipPos.y, 2))), textPos.x, textPos.y);
+    text(String.valueOf((int)Math.sqrt(Math.pow(indicatorPos.x - rocket.shipPos.x, 2) + Math.pow(indicatorPos.y - rocket.shipPos.y, 2))), textIndicatorPos.x, textIndicatorPos.y);
   }
 }
 
 void ResetGame()
 {
+  GenerateColours();
+  rocket.GenerateRocketShape(rocketCol);
   rocket.ResetShip();
   rocket.fuel = 100;
   rocket.startFreeze = true;
+  
   GenerateTerrain();
 }
