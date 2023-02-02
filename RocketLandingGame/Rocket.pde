@@ -1,7 +1,7 @@
 public class Rocket
 {
-  float fuel, acceleration, upAcceleration, sideAcceleration, rotation, rotationSpeed;
-  PVector shipPos;
+  float fuel, acceleration, upAcceleration, sideAcceleration, rotation, rotationSpeed, speed;
+  PVector shipPos, oldPos;
   boolean throttleUp, turnLeft, turnRight, startFreeze;
   ArrayList<Smoke> smokeTrail = new ArrayList<Smoke>();
   PShape rocket, flame;
@@ -13,6 +13,8 @@ public class Rocket
     rotationSpeed = 0.1;
     fuel = 100;
     startFreeze = true;
+    
+    gravity = 0.07;
     
     flame = createShape(GROUP);
     
@@ -96,10 +98,10 @@ public class Rocket
     if (throttleUp && fuel >= 0)
     {
       smokeTrail.add(new Smoke(255, new PVector(shipPos.x, shipPos.y+20)));
-      acceleration += 0.1;
+      acceleration += 0.01;
       fuel -= 0.1;
     } else {
-    acceleration -= 0.2; 
+      acceleration -= 0.02; 
     }
   
     acceleration = constrain(acceleration, 0, 0.3);
@@ -107,13 +109,15 @@ public class Rocket
     float upVelocityComponent = GetVelocityComponent(rotation);
   
     upAcceleration = acceleration * upVelocityComponent * GetVelocityDirection(rotation, true);
-    sideAcceleration += (acceleration * 0.2) * (1-upVelocityComponent) * GetVelocityDirection(rotation, false);
+    sideAcceleration += (acceleration * 0.01) * (1-upVelocityComponent) * GetVelocityDirection(rotation, false);
   
     sideAcceleration = constrain(sideAcceleration, -0.3, 0.3);
     
     //main movement calculation
+    oldPos = new PVector(shipPos.x, shipPos.y);
     shipPos.y += (gravity - (upAcceleration)) * deltaTime;
     shipPos.x += sideAcceleration * deltaTime;
+    speed = (float)Math.sqrt((Math.pow(oldPos.x - shipPos.x, 2)) + (Math.pow(oldPos.y - shipPos.y, 2)));
 
     if (turnLeft) 
     {
@@ -148,11 +152,16 @@ public class Rocket
       xLength -= 2;
     }*/
     
-    if (terrain.contains(shipPos.x, shipPos.y))
+    if (terrain.contains(shipPos.x, shipPos.y) || shipPos.y > height)
     {
       ResetShip();
     } else if (landingPad.landingPad.contains(shipPos.x, shipPos.y))
     {
+      if (speed > 1.2)
+      {
+        ResetShip();
+        return;
+      }
       FreezeShip();
     }
   }
@@ -165,7 +174,7 @@ public class Rocket
     rotation = 0;
     upAcceleration = 0;
     sideAcceleration = 0;
-    gravity = 0.15;
+    gravity = 0.07;
   }
   
   void FreezeShip()
@@ -231,7 +240,7 @@ public class Rocket
   void PrintDebug()
   {
     println("Ship Accl: " + acceleration + ",rot: " + rotation + ",Up Accl: " + upAcceleration + ", side Accl: " + sideAcceleration);
-    println("accl:" + acceleration + " * v comp:" + GetVelocityComponent(rotation) + " = " + sideAcceleration);  
+    println("accl:" + acceleration + " speed: " + speed + " * v comp:" + GetVelocityComponent(rotation) + " = " + sideAcceleration);  
   }
 }
   

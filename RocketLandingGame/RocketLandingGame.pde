@@ -15,8 +15,6 @@ void setup()
   terrainMaxHeight = 250;
   terrainMinHeight = 500;
   
-  gravity = 0.15;
-  
   GenerateColours();
   rocket = new Rocket(rocketCol);
   landingPad = new LandingPad(new PVector(width/2, 400));
