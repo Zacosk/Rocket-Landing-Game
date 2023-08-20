@@ -14,6 +14,7 @@ public class Smoke
   
   void Draw()
   {
+    noStroke();
     fill(colour, life);
     circle(pos.x, pos.y, size);
   }

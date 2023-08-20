@@ -1,20 +1,29 @@
 public class Rocket
 {
-  float fuel, acceleration, upAcceleration, sideAcceleration, rotation, rotationSpeed, speed;
-  PVector shipPos, oldPos;
-  boolean throttleUp, turnLeft, turnRight, startFreeze;
+  int maxDistance;
+  float fuel, backFuel, acceleration, upAcceleration, sideAcceleration, rotation, rotationSpeed, speed, landingSpeed, maxUpAcceleration, maxSideAcceleration, maxXVelocity, maxYVelocity;
+  PVector shipPos, oldPos, velocity;
+  boolean throttleUp, turnLeft, turnRight;
   ArrayList<Smoke> smokeTrail = new ArrayList<Smoke>();
   PShape rocket, flame;
   
   public Rocket(color col)
   {
-    shipPos = new PVector(width/2, height/2);
+    shipPos = new PVector(width/2, 175);
+    velocity = new PVector(0, 0);
   
     rotationSpeed = 0.1;
     fuel = 100;
-    startFreeze = true;
+    backFuel = fuel;
     
-    gravity = 0.07;
+    gravity = 0.15;
+    landingSpeed = 0.05f;
+    maxUpAcceleration = 0.0025;
+    maxSideAcceleration = 0.002;
+    maxXVelocity = 0.3;
+    maxYVelocity = 0.2;
+    
+    maxDistance = 500;
     
     flame = createShape(GROUP);
     
@@ -36,11 +45,11 @@ public class Rocket
   
   void GenerateFlameShapes()
   {
-    PShape outerFlame = createShape(TRIANGLE, 8, 15, -8, 15, 0, 30);
-    outerFlame.setFill(color(255, 0, 0));
+    PShape outerFlame = createShape(TRIANGLE, 8, 10, -8, 10, 0, 20);
+    outerFlame.setFill(color(255, 0, 0, 200));
     outerFlame.setStroke(false);
-    PShape innerFlame = createShape(TRIANGLE, 6, 15, -6, 15, 0, 20);
-    innerFlame.setFill(color(255, 165, 0));
+    PShape innerFlame = createShape(TRIANGLE, 4, 10, -4, 10, 0, 15);
+    innerFlame.setFill(color(255, 165, 0, 200));
     innerFlame.setStroke(false);
     flame.addChild(outerFlame);
     flame.addChild(innerFlame);
@@ -68,56 +77,94 @@ public class Rocket
     //Rocket
     pushMatrix();
     translate(shipPos.x, shipPos.y);
-    rotate(radians(rotation));
-    shape(rocket, 0, -45);
-  
-    if (throttleUp && fuel > 0)
+    //Draw text
+    if (gameState == GameStates.Playing)
     {
-      scale(1, random(0, 2));
-      shape(flame, 0, -10);
-      scale(1);
+      fill(255);
+      if (speed > landingSpeed)
+      {
+        fill(255, 0, 0);
+      }
+      textSize(20);
+      text(Integer.toString((int)(speed*1000)), 20, -25);
     }
+    
+    rotate(radians(rotation));
+  
+    
+    push();
+    if (throttleUp && fuel > 0 && gameState == GameStates.Playing)
+    {
+      scale(1, random(1, 2));
+      shape(flame, 0, -8);
+    }
+    pop();
+    shape(rocket, 0, -45);
     popMatrix();
   }
   
   void DrawFuel()
   {
-    fill(255);
     rectMode(CORNER);
-    rect(200, 50, map(fuel, 0, 100, 0, 400), 20);
+    if (!FuelEmpty(backFuel)) {
+      fill(255, 0, 0);
+      rect(200, 50, map(backFuel, 0, 100, 0, 400), 20);
+    }
+    if (!FuelEmpty(fuel)) {
+      fill(255);
+      rect(200, 50, map(fuel, 0, 100, 0, 400), 20);
+    }
+  }
+  
+  boolean FuelEmpty(float num)
+  {
+    if (num > 0) {
+      return false;
+    }
+    return true;
   }
   
   void Move()
   {
+    PrintDebug();
     CalculateDeltaTime();
-    if (startFreeze)
-    {
-      return;
-    }
   
     if (throttleUp && fuel >= 0)
-    {
-      smokeTrail.add(new Smoke(255, new PVector(shipPos.x, shipPos.y+20)));
-      acceleration += 0.01;
+    { 
+      smokeTrail.add(new Smoke(255, new PVector((int)(shipPos.x+ 20* Math.cos(rotation)), (int)(shipPos.y+20*Math.sin(rotation)))));
+      //smokeTrail.add(new Smoke(255, new PVector(shipPos.x, shipPos.y)));
+      acceleration = 1;
       fuel -= 0.1;
+      backFuel -= 0.05;
     } else {
-      acceleration -= 0.02; 
+      acceleration = 0;
+      backFuel -= 0.2;
+      velocity.y += gravity * deltaTime * 0.001;
     }
-  
-    acceleration = constrain(acceleration, 0, 0.3);
+    backFuel = constrain(backFuel, fuel, backFuel);
     
-    float upVelocityComponent = GetVelocityComponent(rotation);
+    acceleration = constrain(acceleration, 0, 0.6);
+    
+    float upVelocityComponent = GetAccelerationComponent(rotation);
   
-    upAcceleration = acceleration * upVelocityComponent * GetVelocityDirection(rotation, true);
-    sideAcceleration += (acceleration * 0.01) * (1-upVelocityComponent) * GetVelocityDirection(rotation, false);
+    upAcceleration = acceleration * upVelocityComponent * GetAccelerationDirection(rotation, true);
+    sideAcceleration = (acceleration * 0.01) * (1-upVelocityComponent) * GetAccelerationDirection(rotation, false);
   
-    sideAcceleration = constrain(sideAcceleration, -0.3, 0.3);
+    sideAcceleration = constrain(sideAcceleration, maxSideAcceleration*-1, maxSideAcceleration);
+    upAcceleration = constrain(upAcceleration, 0, maxUpAcceleration);
+    
+    velocity.x += sideAcceleration;
+    velocity.y -= upAcceleration;
+    
+    velocity.x = constrain(velocity.x, maxXVelocity * -1, maxXVelocity);
+    velocity.y = constrain(velocity.y, maxYVelocity * -1, 3);
     
     //main movement calculation
     oldPos = new PVector(shipPos.x, shipPos.y);
-    shipPos.y += (gravity - (upAcceleration)) * deltaTime;
-    shipPos.x += sideAcceleration * deltaTime;
-    speed = (float)Math.sqrt((Math.pow(oldPos.x - shipPos.x, 2)) + (Math.pow(oldPos.y - shipPos.y, 2)));
+    shipPos.y += (velocity.y)*deltaTime;
+    
+    shipPos.x += velocity.x * deltaTime;
+    speed = shipPos.dist(oldPos)/deltaTime;
 
     if (turnLeft) 
     {
@@ -152,17 +199,30 @@ public class Rocket
       xLength -= 2;
     }*/
     
-    if (terrain.contains(shipPos.x, shipPos.y) || shipPos.y > height)
+    //Detect if ship is outside of bounds
+    if (shipPos.x > width+maxDistance || shipPos.x < 0 - maxDistance || shipPos.y < 0 - maxDistance)
     {
       ResetShip();
+    }
+    
+    //Detect if ship is on or below terrain
+    if (terrain.contains(shipPos.x, shipPos.y) || shipPos.y > height)
+    {
+      if (fuel <= 0) {
+        gameState = GameStates.Lost;
+      } else {
+        ResetShip();
+      }
+      
+      //Detect if ship is on landing pad
     } else if (landingPad.landingPad.contains(shipPos.x, shipPos.y))
     {
-      if (speed > 1.2)
+      if (speed > landingSpeed)
       {
         ResetShip();
         return;
       }
-      FreezeShip();
+      gameState = GameStates.Won;
     }
   }
   
@@ -171,10 +231,12 @@ public class Rocket
     shipPos.x = width/2;
     shipPos.y = height/2;
     acceleration = 0;
+    velocity.x = 0;
+    velocity.y = 0;
     rotation = 0;
     upAcceleration = 0;
     sideAcceleration = 0;
-    gravity = 0.07;
+    fuel -= 10;
   }
   
   void FreezeShip()
@@ -194,7 +256,7 @@ public class Rocket
     //println("fps: " + frameRate + ", delta: " + deltaTime);
   }
   
-  int GetVelocityDirection(float rotation, boolean up)
+  int GetAccelerationDirection(float rotation, boolean up)
   {
     if (up)
     {
@@ -214,7 +276,7 @@ public class Rocket
     }
   }
   
-  float GetVelocityComponent(float rotation)
+  float GetAccelerationComponent(float rotation)
   {
     if (rotation <= 90 || rotation >= 270)
     {
@@ -239,8 +301,12 @@ public class Rocket
   
   void PrintDebug()
   {
-    println("Ship Accl: " + acceleration + ",rot: " + rotation + ",Up Accl: " + upAcceleration + ", side Accl: " + sideAcceleration);
-    println("accl:" + acceleration + " speed: " + speed + " * v comp:" + GetVelocityComponent(rotation) + " = " + sideAcceleration);  
+    println("========ShipStats========");
+    println("Pos - X: " + shipPos.x + ", Y: " + shipPos.y);
+    println("Accl - up: " + upAcceleration + ", side: " + sideAcceleration);
+    println("vel - y: " + velocity.y + ", x: " + velocity.x);
+    println("up calc:" + (gravity + velocity.y) + ", grav: " + gravity);
+    println("accl:" + acceleration + " speed: " + speed + " * v comp:" + GetAccelerationComponent(rotation) + " = " + sideAcceleration);  
   }
 }
   
@@ -260,6 +326,10 @@ void keyPressed()
     if (keyCode == UP) 
     {
       rocket.throttleUp = true;
+      if (gameState == GameStates.Start) {
+        gameState = GameStates.Playing;
+        oldMillis = millis();
+      }
     }
     if (keyCode == LEFT) 
     {
@@ -268,11 +338,6 @@ void keyPressed()
     {
       rocket.turnRight = true;
     }
-  }
-  
-  if (rocket.startFreeze && key != 'r')
-  {
-    rocket.startFreeze = false;
   }
 }
 

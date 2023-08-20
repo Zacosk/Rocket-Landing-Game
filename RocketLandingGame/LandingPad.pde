@@ -1,7 +1,7 @@
 public class LandingPad
 {
   PVector startPos;
-  PShape landingPad;
+  PShape landingPad, landingStalk;
 
   public LandingPad(PVector startPos)
   {
@@ -11,16 +11,27 @@ public class LandingPad
     landingPad.beginShape();
     landingPad.noStroke();
     landingPad.fill(180);
-    landingPad.vertex(startPos.x, startPos.y);
-    landingPad.vertex(startPos.x+40, startPos.y);
-    landingPad.vertex(startPos.x+40, startPos.y+20);
-    landingPad.vertex(startPos.x, startPos.y+20);
+    landingPad.vertex(startPos.x, startPos.y-15);
+    landingPad.vertex(startPos.x+40, startPos.y-15);
+    landingPad.vertex(startPos.x+35, startPos.y-7);
+    landingPad.vertex(startPos.x+5, startPos.y-7);
     landingPad.endShape(CLOSE);
+    
+    landingStalk = createShape();
+    landingStalk.beginShape();
+    landingStalk.noStroke();
+    landingStalk.fill(120);
+    landingStalk.vertex(startPos.x+30, startPos.y-7);
+    landingStalk.vertex(startPos.x+30, startPos.y+20);
+    landingStalk.vertex(startPos.x+10, startPos.y+20);
+    landingStalk.vertex(startPos.x+10, startPos.y-7);
+    landingStalk.endShape(CLOSE);
   }
   
   void Draw()
   {
     shape(landingPad, 0, 0);
+    shape(landingStalk, 0, 0);
   }
   
   int CheckCrash(int yPos)
