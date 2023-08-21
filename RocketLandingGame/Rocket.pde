@@ -103,7 +103,7 @@ public class Rocket
     push();
     if (throttleUp && fuel > 0 && gameState == GameStates.Playing)
     {
-      if ((int)deltaTime % 4 == 0)
+      if ((int)deltaTime % 8 == 0)
       {
         smokeTrail.add(new Smoke(255, new PVector((float)(shipPos.x+ 15* Math.cos(radians(rotation+90))), (float)(shipPos.y+15*Math.sin(radians(rotation+90))))));
         flameSize = random(1, 2);
