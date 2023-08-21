@@ -8,7 +8,7 @@ public class Smoke
   {
     this.life = life;
     this.pos = new PVector(pos.x + random(-6, 6), pos.y + random(-6, 6));
-    this.colour = color(random(70, 120));
+    this.colour = color(random(170, 220), 200);//random(70, 120));
     this.size = random(5, 18);
   }
   

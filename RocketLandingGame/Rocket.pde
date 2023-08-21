@@ -1,7 +1,7 @@
 public class Rocket
 {
   int maxDistance;
-  float fuel, backFuel, acceleration, upAcceleration, sideAcceleration, rotation, rotationSpeed, speed, landingSpeed, maxUpAcceleration, maxSideAcceleration, maxXVelocity, maxYVelocity;
+  float fuel, backFuel, acceleration, upAcceleration, sideAcceleration, rotation, rotationSpeed, speed, landingSpeed, maxUpAcceleration, maxSideAcceleration, maxXVelocity, maxYVelocity, flameSize;
   PVector shipPos, oldPos, velocity;
   boolean throttleUp, turnLeft, turnRight;
   ArrayList<Smoke> smokeTrail = new ArrayList<Smoke>();
@@ -24,6 +24,7 @@ public class Rocket
     maxYVelocity = 0.2;
     
     maxDistance = 500;
+    flameSize = 1;
     
     flame = createShape(GROUP);
     
@@ -93,9 +94,14 @@ public class Rocket
   
     
     push();
-    if (throttleUp && fuel > 0 && gameState == GameStates.Playing)
+    if (throttleUp && fuel > 0)// && )//&& gameState == GameStates.Playing)
     {
-      scale(1, random(1, 2));
+      if ((int)deltaTime % 2 == 0)
+      {
+        smokeTrail.add(new Smoke(255, new PVector((float)(shipPos.x+ 20* Math.cos(radians(rotation+90))), (float)(shipPos.y+20*Math.sin(radians(rotation+90))))));
+        flameSize = random(1, 2);
+      }
+      scale(1, flameSize);
       shape(flame, 0, -8);
     }
     pop();
@@ -130,8 +136,7 @@ public class Rocket
   
     if (throttleUp && fuel >= 0)
     { 
-      smokeTrail.add(new Smoke(255, new PVector((int)(shipPos.x+ 20* Math.cos(rotation)), (int)(shipPos.y+20*Math.sin(rotation)))));
-      //smokeTrail.add(new Smoke(255, new PVector(shipPos.x, shipPos.y)));
+      
       acceleration = 1;
       fuel -= 0.1;
       backFuel -= 0.05;

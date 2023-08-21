@@ -1,5 +1,5 @@
 float gravity, deltaTime, oldMillis;
-int terrainMaxHeight, terrainMinHeight;
+int terrainMaxHeight, terrainMinHeight, terrainPointNum;
 PShape terrain;
 PVector indicatorPos, textIndicatorPos;
 color backgroundCol, terrainCol, rocketCol;
@@ -24,6 +24,7 @@ void setup()
   
   terrainMaxHeight = 250;
   terrainMinHeight = 500;
+  terrainPointNum = 20;
   
   GenerateColours();
   rocket = new Rocket(rocketCol);
@@ -67,7 +68,7 @@ void GenerateColours()
     case 2: backgroundCol = color(208,18,18); rocketCol = color(151,2,3); terrainCol = color(81,6,6); break;
     case 3: backgroundCol = color(163,146,229); rocketCol = color(103,78,167); terrainCol = color(53,28,117); break;
     case 4: backgroundCol = color(138,234,0); rocketCol = color(0,186,24); terrainCol = color(0,59,8); break;
-    case 5: backgroundCol = color(255, 252, 161); rocketCol = color(254, 222, 58); terrainCol = color(244, 187, 0); break;
+    case 5: backgroundCol = color(255, 254, 230); rocketCol = color(254, 222, 58); terrainCol = color(244, 187, 0); break;
     //case 4: backgroundCol = color(); rocketCol = color(); terrainCol = color(); break;
   }
 }
@@ -76,12 +77,13 @@ void GenerateTerrain()
 {
   noiseSeed((int)random(0, 255));
   int landingPadStart = (int)random(1, 20);
+  int terrainPointSpacing = width/terrainPointNum;
   
   terrain = createShape();
   terrain.beginShape();
   terrain.noStroke();
   terrain.fill(terrainCol);
-  terrain.vertex(0, 500);
+  terrain.vertex(0, height);
   
   //PVector lastTerrainPos = new PVector(0, 0);
   
@@ -89,17 +91,17 @@ void GenerateTerrain()
   {
     if (i == landingPadStart)
     {
-      landingPad = new LandingPad(new PVector(i*40, (map(noise(i), 0, 1, terrainMaxHeight, terrainMinHeight))));
+      landingPad = new LandingPad(new PVector(i*terrainPointSpacing, (map(noise(i), 0, 1, terrainMaxHeight, terrainMinHeight))));
       float terrainHeight = map(noise(i), 0, 1, terrainMaxHeight, terrainMinHeight);
-      terrain.vertex(i*40, terrainHeight);
+      terrain.vertex(i*terrainPointSpacing, terrainHeight);
       
-      terrain.vertex((i+1)*40, terrainHeight);
+      terrain.vertex((i+1)*terrainPointSpacing, terrainHeight);
       i++;
     } else {
-      terrain.vertex(i*40, map(noise(i), 0, 1, terrainMaxHeight, terrainMinHeight));  
+      terrain.vertex(i*terrainPointSpacing, map(noise(i), 0, 1, terrainMaxHeight, terrainMinHeight));  
     }
   }
-  terrain.vertex(800, 500);
+  terrain.vertex(width, height);
   terrain.endShape(CLOSE);
   GenerateCollisionPoints();
 }
