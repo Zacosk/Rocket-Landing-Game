@@ -6,6 +6,7 @@ public class Rocket
   boolean throttleUp, turnLeft, turnRight;
   ArrayList<Smoke> smokeTrail = new ArrayList<Smoke>();
   PShape rocket, flame;
+  ControlStates controlState;
   
   public Rocket(color col)
   {
@@ -16,12 +17,14 @@ public class Rocket
     fuel = 100;
     backFuel = fuel;
     
-    gravity = 0.15;
+    gravity = 0.00015;
     landingSpeed = 0.05f;
     maxUpAcceleration = 0.0025;
     maxSideAcceleration = 0.002;
     maxXVelocity = 0.3;
     maxYVelocity = 0.2;
+    
+    controlState = ControlStates.Default;
     
     maxDistance = 500;
     flameSize = 1;
@@ -71,10 +74,12 @@ public class Rocket
       }
     }
     
-    for (int i = 0; i < deadSmoke.size(); i++)
-    {
-      smokeTrail.remove(i);
-    }
+    try {
+      for (int i = 0; i < deadSmoke.size(); i++)
+      {
+        smokeTrail.remove(i);
+      }
+    } catch (Exception e) {}
     
     //Rocket
     pushMatrix();
@@ -101,7 +106,7 @@ public class Rocket
     push();
     if (throttleUp && fuel > 0 && gameState == GameStates.Playing)
     {
-      if ((int)deltaTime % 2 == 0)
+      if ((int)deltaTime % 4 == 0)
       {
         smokeTrail.add(new Smoke(255, new PVector((float)(shipPos.x+ 15* Math.cos(radians(rotation+90))), (float)(shipPos.y+15*Math.sin(radians(rotation+90))))));
         flameSize = random(1, 2);
@@ -140,20 +145,25 @@ public class Rocket
   {
     CalculateDeltaTime();
   
-    if (throttleUp && fuel >= 0)
-    { 
-      
-      acceleration = 1;
-      fuel -= 0.1;
-      backFuel -= 0.05;
-    } else {
-      acceleration = 0;
-      backFuel -= 0.2;
-      velocity.y += gravity * deltaTime * 0.001;
+    switch(controlState)
+    {
+      case Default:
+      if (throttleUp && fuel > 0)
+      {
+        acceleration = 0.6;
+        fuel -= 0.01 * deltaTime;
+        backFuel -= 0.005 * deltaTime;
+      } else {
+        acceleration = 0;
+        backFuel -= 0.02 * deltaTime;
+        //velocity.y += gravity * deltaTime * 0.001;
+      }
+      break;
+      case Burst: break;
+      case Constant: break;
+      }
     }
     backFuel = constrain(backFuel, fuel, backFuel);
-    
-    acceleration = constrain(acceleration, 0, 0.6);
     
     float upVelocityComponent = GetAccelerationComponent(rotation);
   
@@ -165,6 +175,7 @@ public class Rocket
     
     velocity.x += sideAcceleration;
     velocity.y -= upAcceleration;
+    velocity.y += gravity * deltaTime;
     
     velocity.x = constrain(velocity.x, maxXVelocity * -1, maxXVelocity);
     velocity.y = constrain(velocity.y, maxYVelocity * -1, 3);
@@ -216,6 +227,11 @@ public class Rocket
     {
       if (velocity.y > landingSpeed)
       {
+        if (fuel <= 0)
+        {
+          gameState = GameStates.Lost;
+          return;
+        }
         ResetShip();
         return;
       }

@@ -21,7 +21,7 @@ public class Smoke
   
   void Decay()
   {
-    life -= 10;
-    size -= 0.5;
+    life -= 0.25*deltaTime;
+    size -= 0.015*deltaTime;
   }
 }

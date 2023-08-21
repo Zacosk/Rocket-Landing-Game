@@ -16,11 +16,18 @@ enum GameStates {
   Won
 }
 
+enum ControlStates {
+  Default,
+  Burst,
+  Constant
+}
+
 void setup()
 {
   size(800, 600);
   smooth(8);
   pixelDensity(displayDensity());
+  frameRate(120);
   
   terrainMaxHeight = height-250;
   terrainMinHeight = height;
@@ -41,7 +48,6 @@ void draw()
   background(backgroundCol);
   DrawTerrain();
   rocket.Draw();
-  //println(frameRate);
   
   switch(gameState) {
     case Start: 
@@ -210,6 +216,7 @@ void CheckRocketOffscreen()
 
 void DrawStart() 
 {
+  fill(rocketCol);
   textSize(60);
   text("Rocket Lander", 10, 55);
   textSize(30);
