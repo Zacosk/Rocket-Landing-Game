@@ -16,12 +16,6 @@ enum GameStates {
   Won
 }
 
-enum ControlStates {
-  Default,
-  Burst,
-  Constant
-}
-
 void setup()
 {
   size(800, 600);

@@ -6,7 +6,6 @@ public class Rocket
   boolean throttleUp, turnLeft, turnRight;
   ArrayList<Smoke> smokeTrail = new ArrayList<Smoke>();
   PShape rocket, flame;
-  ControlStates controlState;
   
   public Rocket(color col)
   {
@@ -23,8 +22,6 @@ public class Rocket
     maxSideAcceleration = 0.002;
     maxXVelocity = 0.3;
     maxYVelocity = 0.2;
-    
-    controlState = ControlStates.Default;
     
     maxDistance = 500;
     flameSize = 1;
@@ -145,24 +142,17 @@ public class Rocket
   {
     CalculateDeltaTime();
   
-    switch(controlState)
+    if (throttleUp && fuel > 0)
     {
-      case Default:
-      if (throttleUp && fuel > 0)
-      {
-        acceleration = 0.6;
-        fuel -= 0.01 * deltaTime;
-        backFuel -= 0.005 * deltaTime;
-      } else {
-        acceleration = 0;
-        backFuel -= 0.02 * deltaTime;
-        //velocity.y += gravity * deltaTime * 0.001;
-      }
-      break;
-      case Burst: break;
-      case Constant: break;
-      }
+      acceleration = 0.6;
+      fuel -= 0.01 * deltaTime;
+      backFuel -= 0.005 * deltaTime;
+    } else {
+      acceleration = 0;
+      backFuel -= 0.02 * deltaTime;
+      //velocity.y += gravity * deltaTime * 0.001;
     }
+
     backFuel = constrain(backFuel, fuel, backFuel);
     
     float upVelocityComponent = GetAccelerationComponent(rotation);
