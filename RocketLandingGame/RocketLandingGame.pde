@@ -3,6 +3,7 @@ int terrainMaxHeight, terrainMinHeight;
 PShape terrain;
 PVector indicatorPos, textIndicatorPos;
 color backgroundCol, terrainCol, rocketCol;
+ArrayList<CollisionPoint> collisionPoints = new ArrayList<CollisionPoint>();
 GameStates gameState;
 
 LandingPad landingPad;
@@ -82,7 +83,7 @@ void GenerateTerrain()
   terrain.fill(terrainCol);
   terrain.vertex(0, 500);
   
-  PVector lastTerrainPos = new PVector(0, 0);
+  //PVector lastTerrainPos = new PVector(0, 0);
   
   for(int i = 0; i < 20; i++)
   {
@@ -95,11 +96,45 @@ void GenerateTerrain()
       terrain.vertex((i+1)*40, terrainHeight);
       i++;
     } else {
-      terrain.vertex(i*40, map(noise(i), 0, 1, terrainMaxHeight, terrainMinHeight));
+      terrain.vertex(i*40, map(noise(i), 0, 1, terrainMaxHeight, terrainMinHeight));  
     }
   }
   terrain.vertex(800, 500);
   terrain.endShape(CLOSE);
+  GenerateCollisionPoints();
+}
+
+void GenerateCollisionPoints()
+{
+  //iterate over terrain vertex points and generate collision points
+  for (int i = 0; i < terrain.getVertexCount(); i++)
+  {
+    collisionPoints.add(new CollisionPoint(terrain.getVertex(i)));
+    //iterate over sections between collision points and generate collision points
+    for (int j = 1; j <= 2; j++)
+    {
+      try {
+        collisionPoints.add(new CollisionPoint(new PVector(lerp(terrain.getVertex(i).x, terrain.getVertex(i+1).x, 0.3*j), lerp(terrain.getVertex(i).y, terrain.getVertex(i+1).y, 0.3*j))));
+      }  
+      catch(Exception e)
+      {
+        
+      }
+    }
+  }
+}
+
+boolean CheckTerrainCollision()
+{
+  for (int i = 0; i < collisionPoints.size(); i++)
+  {
+    //collisionPoints.get(i).DrawDebug();
+    if (collisionPoints.get(i).CheckCollision(rocket.shipPos))
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 void DrawTerrain()
@@ -182,6 +217,7 @@ void ResetGame()
   rocket.GenerateRocketShape(rocketCol);
   rocket.ResetShip();
   rocket.fuel = 100;
+  collisionPoints.clear();
   
   GenerateTerrain();
   

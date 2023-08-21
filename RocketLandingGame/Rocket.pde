@@ -126,7 +126,6 @@ public class Rocket
   
   void Move()
   {
-    PrintDebug();
     CalculateDeltaTime();
   
     if (throttleUp && fuel >= 0)
@@ -186,19 +185,6 @@ public class Rocket
   
   void CheckCollision()
   {
-    /*for (int y = 50; y > 0 ; y--)
-    {
-      int xLength = 10;
-      for (int x = (-1 * xLength); y >= xLength; y++)
-      { 
-        if (terrain.contains(shipPos.x + x, shipPos.y + y))
-        {
-          ResetShip();
-        }
-      }
-      xLength -= 2;
-    }*/
-    
     //Detect if ship is outside of bounds
     if (shipPos.x > width+maxDistance || shipPos.x < 0 - maxDistance || shipPos.y < 0 - maxDistance)
     {
@@ -206,7 +192,7 @@ public class Rocket
     }
     
     //Detect if ship is on or below terrain
-    if (terrain.contains(shipPos.x, shipPos.y) || shipPos.y > height)
+    if (CheckTerrainCollision() || shipPos.y > height)
     {
       if (fuel <= 0) {
         gameState = GameStates.Lost;
