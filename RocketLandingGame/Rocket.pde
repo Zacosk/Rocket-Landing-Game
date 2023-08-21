@@ -20,8 +20,8 @@ public class Rocket
     landingSpeed = 0.05f;
     maxUpAcceleration = 0.0025;
     maxSideAcceleration = 0.002;
-    maxXVelocity = 0.3;
-    maxYVelocity = 0.2;
+    //maxXVelocity = 0.3;
+    //maxYVelocity = 0.2;
     
     maxDistance = 500;
     flameSize = 1;
@@ -167,8 +167,8 @@ public class Rocket
     velocity.y -= upAcceleration;
     velocity.y += gravity * deltaTime;
     
-    velocity.x = constrain(velocity.x, maxXVelocity * -1, maxXVelocity);
-    velocity.y = constrain(velocity.y, maxYVelocity * -1, 3);
+    //velocity.x = constrain(velocity.x, maxXVelocity * -1, maxXVelocity);
+    //velocity.y = constrain(velocity.y, maxYVelocity * -1, 3);
     
     //main movement calculation
     oldPos = new PVector(shipPos.x, shipPos.y);
