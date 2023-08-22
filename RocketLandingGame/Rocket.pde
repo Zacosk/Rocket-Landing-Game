@@ -19,8 +19,6 @@ public class Rocket
     
     maxDistance = 500;
     flameSize = 1;
-
-    SetControlMode(ControlModes.Burst);
     
     flame = createShape(GROUP);
     
@@ -38,12 +36,14 @@ public class Rocket
         maxSideAcceleration = 0.002;
         landingSpeed = 0.075;
         startingFuel = 100;
+        fuel = startingFuel;
       break;
       case Burst:
         maxUpAcceleration = 100;
         maxSideAcceleration = 100;
         landingSpeed = 0.075;
         startingFuel = 0;
+        fuel = startingFuel;
       break;
     }
     backFuel = fuel;
@@ -139,7 +139,6 @@ public class Rocket
             if ((int)deltaTime % 8 == 0)
             {
               flameSize = Math.abs(velocity.y) * random(3, 5);// * (velocity.y+0.1));
-              println(flameSize);
               flameSize = map(flameSize, 0.01, 1.4, 1, 2);
               scale(1, flameSize);
             }
@@ -275,11 +274,20 @@ public class Rocket
     //Detect if ship is on or below terrain
     if (CheckTerrainCollision() || shipPos.y > height)
     {
-      if (fuel <= 0) {
-        gameState = GameStates.Lost;
-      } else {
-        ResetShip();
+      switch (controlMode)
+      {
+        case Default:
+          if (fuel <= 0) {
+            gameState = GameStates.Lost;
+          } else {
+          ResetShip();
+        }
+        break;
+        case Burst:
+          gameState = GameStates.Lost;
+        break;
       }
+      
       
       //Detect if ship is on landing pad
     } else if (landingPad.landingPad.contains(shipPos.x, shipPos.y))
@@ -308,12 +316,13 @@ public class Rocket
     rotation = 0;
     upAcceleration = 0;
     sideAcceleration = 0;
+    /*
     if (controlMode == ControlModes.Burst)
     {
       fuel = 0;
-    } else {
+    } else {*/
       fuel -= 10;
-    }
+    //}
   }
   
   void FreezeShip()

@@ -5,6 +5,7 @@ PVector indicatorPos, textIndicatorPos;
 color backgroundCol, terrainCol, rocketCol;
 ArrayList<CollisionPoint> collisionPoints = new ArrayList<CollisionPoint>();
 GameStates gameState;
+ArrayList<Button> controlButtons = new ArrayList<Button>();
 
 LandingPad landingPad;
 Rocket rocket;
@@ -38,6 +39,12 @@ void setup()
   noStroke();
   
   gameState = GameStates.Start;
+  
+  //Generate buttons
+  controlButtons.add(new Button("Default", new PVector(56, 335), new PVector(75, 25)));
+  controlButtons.add(new Button("Burst", new PVector(140, 335), new PVector(75, 25)));
+  controlButtons.get(0).selected = true;
+  rocket.SetControlMode(ControlModes.Default);
 }
 
 void draw()
@@ -222,15 +229,23 @@ void DrawStart()
   stroke(rocketCol);
   noFill();
   strokeWeight(2);
-  rect(8, 160, 180, 120);
+  rect(8, 160, 180, 200, 10);
   textSize(30);
   text("Controls:", 98, 186);
   textSize(20);
   text("Up arrow - Throttle", 98, 215);
   text("Side arrows - Rotate", 98, 240);
   text("R - Reset", 98, 265);
+  
+  textSize(30);
+  text("Mode:", 98, 305);
   textAlign(LEFT);
   noStroke();
+  
+  for (Button button : controlButtons)
+  {
+    button.Run();
+  }
 }
 
 void DrawEndGame()
@@ -261,4 +276,37 @@ void ResetGame()
   GenerateCollisionPoints();
   
   gameState = GameStates.Start;
+}
+
+void mousePressed()
+{
+  if (mouseButton == LEFT)
+  {
+    for (int i = 0; i < controlButtons.size(); i++)
+    {
+      if (controlButtons.get(i).hover)
+      {
+        ButtonControls(i, true);
+      }
+    }
+  }
+}
+
+void ButtonControls(int btnNum, boolean controls)
+{
+  if (controls)
+  {
+    switch(btnNum)
+    {
+      case 0: rocket.SetControlMode(ControlModes.Default);
+      break;
+      case 1: rocket.SetControlMode(ControlModes.Burst);
+      break;
+    }
+    for (int i = 0; i < controlButtons.size(); i++)
+    {
+      controlButtons.get(i).selected = false;
+    }
+    controlButtons.get(btnNum).selected = true;
+  }
 }
