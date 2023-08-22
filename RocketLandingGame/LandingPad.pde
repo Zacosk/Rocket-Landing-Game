@@ -33,18 +33,4 @@ public class LandingPad
     shape(landingPad, 0, 0);
     shape(landingStalk, 0, 0);
   }
-  
-  int CheckCrash(int yPos)
-  {
-    return 23;
-    /*
-    if (yPos >= pos.y && !landable)
-    {
-      return 1;
-    } else if (yPos >= pos.y && landable)
-    {
-      return 2;
-    }
-    return 3; */
-  }
 }

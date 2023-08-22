@@ -124,7 +124,7 @@ public class Rocket
         case Default:
           if (throttleUp && fuel > 0)
           {
-            if ((int)deltaTime % 8 == 0)
+            if (millis() % 4 == 0)
             {
               GenerateSmoke(1);
               flameSize = random(1, 2);
@@ -136,7 +136,7 @@ public class Rocket
         case Burst:
           if (velocity.y < 0)
           {
-            if ((int)deltaTime % 8 == 0)
+            if (millis() % 4 == 0)
             {
               flameSize = Math.abs(velocity.y) * random(3, 5);// * (velocity.y+0.1));
               flameSize = map(flameSize, 0.01, 1.4, 1, 2);
