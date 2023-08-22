@@ -16,6 +16,10 @@ enum GameStates {
   Won
 }
 
+enum ControlModes {
+  Default, Burst
+}
+
 void setup()
 {
   size(800, 600);
@@ -28,9 +32,8 @@ void setup()
   terrainPointNum = 20;
   segColNum = terrainPointNum/10;
   
-  GenerateColours();
   rocket = new Rocket(rocketCol);
-  GenerateTerrain();
+  ResetGame();
   GenerateIndicator();
   noStroke();
   
@@ -105,7 +108,6 @@ void GenerateTerrain()
   }
   terrain.vertex(width, height);
   terrain.endShape(CLOSE);
-  GenerateCollisionPoints();
 }
 
 void GenerateCollisionPoints()
@@ -252,10 +254,11 @@ void ResetGame()
   GenerateColours();
   rocket.GenerateRocketShape(rocketCol);
   rocket.ResetShip();
-  rocket.fuel = 100;
+  rocket.fuel = rocket.startingFuel;
   collisionPoints.clear();
   
   GenerateTerrain();
+  GenerateCollisionPoints();
   
   gameState = GameStates.Start;
 }

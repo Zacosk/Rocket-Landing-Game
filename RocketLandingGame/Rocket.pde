@@ -1,11 +1,12 @@
 public class Rocket
 {
   int maxDistance;
-  float fuel, backFuel, acceleration, upAcceleration, sideAcceleration, rotation, rotationSpeed, speed, landingSpeed, maxUpAcceleration, maxSideAcceleration, maxXVelocity, maxYVelocity, flameSize;
+  float fuel, startingFuel, backFuel, acceleration, upAcceleration, sideAcceleration, rotation, rotationSpeed, speed, landingSpeed, maxUpAcceleration, maxSideAcceleration, maxXVelocity, maxYVelocity, flameSize;
   PVector shipPos, oldPos, velocity;
   boolean throttleUp, turnLeft, turnRight;
   ArrayList<Smoke> smokeTrail = new ArrayList<Smoke>();
   PShape rocket, flame;
+  ControlModes controlMode;
   
   public Rocket(color col)
   {
@@ -13,23 +14,39 @@ public class Rocket
     velocity = new PVector(0, 0);
   
     rotationSpeed = 0.1;
-    fuel = 100;
-    backFuel = fuel;
     
     gravity = 0.00015;
-    landingSpeed = 0.05f;
-    maxUpAcceleration = 0.0025;
-    maxSideAcceleration = 0.002;
-    //maxXVelocity = 0.3;
-    //maxYVelocity = 0.2;
     
     maxDistance = 500;
     flameSize = 1;
+
+    SetControlMode(ControlModes.Burst);
     
     flame = createShape(GROUP);
     
     GenerateRocketShape(col);
     GenerateFlameShapes();
+  }
+  
+  public void SetControlMode(ControlModes controlMode)
+  {
+    this.controlMode = controlMode;
+    switch(controlMode)
+    {
+      case Default:
+        maxUpAcceleration = 0.003;
+        maxSideAcceleration = 0.002;
+        landingSpeed = 0.075;
+        startingFuel = 100;
+      break;
+      case Burst:
+        maxUpAcceleration = 100;
+        maxSideAcceleration = 100;
+        landingSpeed = 0.075;
+        startingFuel = 0;
+      break;
+    }
+    backFuel = fuel;
   }
   
   void GenerateRocketShape(color col)
@@ -99,21 +116,50 @@ public class Rocket
     
     rotate(radians(rotation));
   
-    
     push();
-    if (throttleUp && fuel > 0 && gameState == GameStates.Playing)
+    if (gameState == GameStates.Playing)
     {
-      if ((int)deltaTime % 8 == 0)
+      switch(controlMode)
       {
-        smokeTrail.add(new Smoke(255, new PVector((float)(shipPos.x+ 15* Math.cos(radians(rotation+90))), (float)(shipPos.y+15*Math.sin(radians(rotation+90))))));
-        flameSize = random(1, 2);
+        case Default:
+          if (throttleUp && fuel > 0)
+          {
+            if ((int)deltaTime % 8 == 0)
+            {
+              GenerateSmoke(1);
+              flameSize = random(1, 2);
+              scale(1, flameSize);
+            }
+            shape(flame, 0, -14);
+          }
+        break;
+        case Burst:
+          if (velocity.y < 0)
+          {
+            if ((int)deltaTime % 8 == 0)
+            {
+              flameSize = Math.abs(velocity.y) * random(3, 5);// * (velocity.y+0.1));
+              println(flameSize);
+              flameSize = map(flameSize, 0.01, 1.4, 1, 2);
+              scale(1, flameSize);
+            }
+            shape(flame, 0, -14);
+          }
+        break;
       }
-      scale(1, flameSize);
-      shape(flame, 0, -14);
     }
+      
     pop();
     shape(rocket, 0, -50);
     popMatrix();
+  }
+  
+  void GenerateSmoke(int count)
+  {
+    for (int i = 0; i < count; i++)
+    {
+      smokeTrail.add(new Smoke(255, new PVector((float)(shipPos.x+ 15* Math.cos(radians(rotation+90))), (float)(shipPos.y+15*Math.sin(radians(rotation+90))))));
+    }
   }
   
   void DrawFuel()
@@ -128,6 +174,13 @@ public class Rocket
       fill(255);
       rect(drawPos, 50, map(fuel, 0, 100, 0, 400), 20);
     }
+    
+    if (throttleUp) {
+      backFuel -= 0.005 * deltaTime;
+    } else {
+      backFuel -= 0.01 * deltaTime;
+    }
+    backFuel = constrain(backFuel, fuel, backFuel);
   }
   
   boolean FuelEmpty(float num)
@@ -142,23 +195,39 @@ public class Rocket
   {
     CalculateDeltaTime();
   
-    if (throttleUp && fuel > 0)
+    switch (controlMode)
     {
-      acceleration = 0.6;
-      fuel -= 0.01 * deltaTime;
-      backFuel -= 0.005 * deltaTime;
-    } else {
-      acceleration = 0;
-      backFuel -= 0.02 * deltaTime;
-      //velocity.y += gravity * deltaTime * 0.001;
+      case Default:
+        if (throttleUp && fuel > 0)
+        {
+          acceleration = 1;
+          fuel -= 0.01 * deltaTime;
+        } else {
+          acceleration = 0;
+        } 
+      break;
+      //Hold throttle to charge up acceleration boost
+      case Burst:
+        if (throttleUp)
+        {
+          //acceleration = 0.01 * ((fuel+1)/10);
+          fuel += 0.05 * deltaTime;
+          
+          fuel = constrain(fuel, 0, 100);
+        } else {
+          acceleration = 0.07 * (fuel/10);
+          GenerateSmoke((int)fuel/2);
+          fuel = 0;
+        }
+      break;
     }
 
-    backFuel = constrain(backFuel, fuel, backFuel);
+    
     
     float upVelocityComponent = GetAccelerationComponent(rotation);
   
     upAcceleration = acceleration * upVelocityComponent * GetAccelerationDirection(rotation, true);
-    sideAcceleration = (acceleration * 0.01) * (1-upVelocityComponent) * GetAccelerationDirection(rotation, false);
+    sideAcceleration = acceleration * (1-upVelocityComponent) * GetAccelerationDirection(rotation, false);
   
     sideAcceleration = constrain(sideAcceleration, maxSideAcceleration*-1, maxSideAcceleration);
     upAcceleration = constrain(upAcceleration, maxUpAcceleration*-1, maxUpAcceleration);
@@ -239,7 +308,12 @@ public class Rocket
     rotation = 0;
     upAcceleration = 0;
     sideAcceleration = 0;
-    fuel -= 10;
+    if (controlMode == ControlModes.Burst)
+    {
+      fuel = 0;
+    } else {
+      fuel -= 10;
+    }
   }
   
   void FreezeShip()
@@ -270,12 +344,17 @@ public class Rocket
         return 1;
       }
     } else {
-      if (rotation >= 0 && rotation <= 180)
+      /*
+       * To minimise the need for constant side adjustments when landing
+       * the first 5 degrees of rotation aren't used 
+       */
+      if (rotation >= 5 && rotation <= 175)
       {
         return 1;
-      } else {
+      } else if (rotation <= 355 && rotation >= 185) {
         return -1;
       }
+      return 0;
     }
   }
   
