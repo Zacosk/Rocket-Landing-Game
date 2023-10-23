@@ -58,7 +58,7 @@ public class Button
     strokeWeight(2);
     textSize(20);
     textAlign(CENTER, CENTER);
-    text(text, 0, -4);
+    text(text, 0, 0);
   }
   
   public void CheckHover()

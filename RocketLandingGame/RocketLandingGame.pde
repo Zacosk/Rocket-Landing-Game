@@ -27,6 +27,8 @@ void setup()
   smooth(8);
   pixelDensity(displayDensity());
   frameRate(120);
+  surface.setIcon(loadImage("Icon.png"));
+  surface.setTitle("Rocket Lander");
   
   terrainMaxHeight = height-250;
   terrainMinHeight = height;
